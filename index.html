@@ -177,7 +177,7 @@
             clickPromptElement.style.opacity = 0; setTimeout(() => { clickPromptElement.style.display = 'none'; }, 500);
             
             // +++ SET AUDIO VOLUME HERE +++
-            audioElement.volume = 0.3; // Example: 30% volume. Adjust 0.0 to 1.0.
+            audioElement.volume = 0.1; // Example: 30% volume. Adjust 0.0 to 1.0.
 
             audioElement.play().catch(error => { console.warn("Audio autoplay prevented.", error); });
             planet.material.visible = true; meteor.visible = true;
