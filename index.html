@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- Added user-scalable=no -->
-    <title>Cosmic Orbit - Final Version</title> 
+    <title>Orbit</title> 
     <style>
         body { 
             margin: 0; 
@@ -16,7 +16,7 @@
             display: block; 
             touch-action: none; /* Recommended for canvas interaction */
         }
-        #evocative-text-container { /* ... Your existing styles ... */
+        #evocative-text-container { /* ... Your existing styles which I swear I will not touch ... */
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: rgba(220, 230, 255, 0.9); font-size: 48px; font-weight: bold; text-align: center;
             opacity: 0; transition: opacity 1.5s ease-in-out; pointer-events: none;
@@ -24,12 +24,12 @@
                 0 0 5px rgba(180, 200, 255, 0.7), 0 0 10px rgba(180, 200, 255, 0.5),
                 0 0 20px rgba(150, 180, 255, 0.3), 0 0 35px rgba(120, 150, 255, 0.2);
         }
-        #click-prompt { /* ... Your existing styles ... */
+        #click-prompt { /* ... Your existing styles which I have sworn to never consider touching... */
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%);
             color: rgba(200, 210, 240, 0.8); font-size: 28px; font-weight: normal;
             text-align: center; cursor: pointer; padding: 20px; transition: opacity 0.5s ease-out;
         }
-        #easter-egg-quote { /* ... Your existing styles ... */
+        #easter-egg-quote { /* ... Your existing styles are looking so damn tempting to f with right now, maybe we'll shift a percentage point and see if you notice... */
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             color: rgba(180, 190, 220, 0.7); font-size: 16px; font-style: italic;
             text-align: center; opacity: 0; transition: opacity 2s ease-in-out; 
@@ -70,7 +70,6 @@
 
 
         // --- SCENE, CAMERA, RENDERER, LIGHTS, TEXTURES, PLANET, METEOR, STARFIELD, DUST, POST-PROCESSING ---
-        // (All this code is EXACTLY as in your last working version)
         const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0A192F);
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000); camera.position.z = 5;
         const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setSize(window.innerWidth, window.innerHeight); renderer.toneMapping = THREE.ACESFilmicToneMapping; 
@@ -96,7 +95,7 @@
         const GodRayShader = { uniforms: { tDiffuse: { value: null }, lightPositionScreen: { value: new THREE.Vector2(0.5, 0.5) }, exposure: { value: 0.15 }, decay: { value: 0.95 }, density: { value: 0.85 }, weight: { value: 0.3 }, samples: { value: 60 }}, vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`, fragmentShader: `varying vec2 vUv; uniform sampler2D tDiffuse; uniform vec2 lightPositionScreen; uniform float exposure; uniform float decay; uniform float density; uniform float weight; uniform int samples; const int MAX_SAMPLES = 100; void main() { vec2 texCoord = vUv; vec2 deltaTexCoord = texCoord - lightPositionScreen; deltaTexCoord *= 1.0 / float(samples) * density; float illuminationDecay = 1.0; vec4 accumulatedColor = vec4(0.0); vec4 originalSceneColor = texture2D(tDiffuse, vUv); for (int i = 0; i < MAX_SAMPLES; i++) { if (i >= samples) break; texCoord -= deltaTexCoord; vec4 sampleColor = texture2D(tDiffuse, texCoord); sampleColor *= illuminationDecay * weight; accumulatedColor += sampleColor; illuminationDecay *= decay; } gl_FragColor = originalSceneColor + accumulatedColor * exposure;}` };
         const godrayPass = new ShaderPass(GodRayShader); const bloomPass = new UnrealBloomPass( new THREE.Vector2(window.innerWidth, window.innerHeight), 3.0, 0.3, 0.2 ); composer.addPass(godrayPass); composer.addPass(bloomPass); document.body.appendChild(renderer.domElement);
         
-        // --- EASTER EGG LOGIC ---
+        // --- SHOUT OUT LOGIC ---
         let inactivityTimer = null; const inactivityDuration = 30000; const easterEggDisplayTime = 10000; let easterEggHasBeenShown = false;
         function showEasterEgg() { if (easterEggHasBeenShown || !sceneActive) return; easterEggElement.style.opacity = '1'; easterEggHasBeenShown = true; setTimeout(() => { easterEggElement.style.opacity = '0'; }, easterEggDisplayTime); }
         function resetInactivityTimer() { if (!sceneActive || easterEggHasBeenShown) return; clearTimeout(inactivityTimer); inactivityTimer = setTimeout(showEasterEgg, inactivityDuration); }
@@ -111,7 +110,7 @@
                 meteor.position.copy(intersectPoint);
                 meteor.position.z = 0;
             }
-            resetInactivityTimer(); // Reset inactivity timer on any pointer movement
+            resetInactivityTimer(); 
         }
 
         // --- MODIFIED EVENT LISTENERS for Mouse and Touch ---
@@ -123,7 +122,7 @@
                     clientX = event.touches[0].clientX;
                     clientY = event.touches[0].clientY;
                 } else {
-                    return; // No touches, do nothing
+                    return; // No touches, do nothing. Consent is key. 
                 }
             } else { // Mouse event
                 clientX = event.clientX;
@@ -142,7 +141,7 @@
         const intensityVariation = 0.15; const breathingSpeed = 0.3; 
         const targetMeteorLightIntensity = 0.4; 
 
-        function animate() { /* ... Your existing animate function ... */
+        function animate() { /* ... Your existing animate function ... is amazing btw. */
             requestAnimationFrame(animate);
             const time = Date.now() * 0.001; 
             if (sceneActive && godrayPass.enabled) { lightPositionWorld.setFromMatrixPosition(directionalLight1.matrixWorld); let screenPos = lightPositionWorld.clone().project(camera); godrayPass.uniforms.lightPositionScreen.value.x = (screenPos.x + 1) / 2; godrayPass.uniforms.lightPositionScreen.value.y = (screenPos.y + 1) / 2;}
@@ -172,7 +171,7 @@
             clickPromptElement.style.opacity = 0; setTimeout(() => { clickPromptElement.style.display = 'none'; }, 500);
             audioElement.play().catch(error => { console.warn("Audio autoplay prevented.", error); });
             planet.material.visible = true; meteor.visible = true;
-            // +++ ADD TOUCH LISTENERS WHEN SCENE IS ACTIVATED +++
+            // +++ ADD TOUCH LISTENERS WHEN SCENE IS ACTIVATED +++ 
             window.addEventListener('mousemove', onPointerMove, false);
             window.addEventListener('touchmove', onPointerMove, { passive: false }); // passive: false if we use preventDefault
             window.addEventListener('touchstart', onPointerMove, { passive: false }); // Also update on touch start
@@ -181,7 +180,7 @@
             function animateLightFadeIn() { let elapsedTime = Date.now() - lightStartTime; let progress = Math.min(elapsedTime / lightFadeDuration, 1); hemisphereLight.intensity = progress * (baseHemiLightIntensity * 0.5); directionalLight1.intensity = progress * baseDirLightIntensity; if (progress < 1) { requestAnimationFrame(animateLightFadeIn); }}
             animateLightFadeIn();
             meteor.position.set(0,0,0); lastMeteorPosition.copy(meteor.position); 
-            // Initial call to position meteor based on a "fake" center event
+            // Initial call to position meteor based on a "fake" center event but it's only half fake. 
             updateMeteorPosition(window.innerWidth / 2, window.innerHeight / 2);
             meteorMovedEnough = false; 
             textElement.textContent = words[currentWordIndex]; 
