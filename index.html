@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- Added user-scalable=no -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Orbit</title> 
     <style>
         body { 
@@ -10,13 +10,13 @@
             overflow: hidden; 
             background-color: #050A10; 
             font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            overscroll-behavior: none; /* Prevent pull-to-refresh on mobile */
+            overscroll-behavior: none; 
         }
         canvas { 
             display: block; 
-            touch-action: none; /* Recommended for canvas interaction */
+            touch-action: none; 
         }
-        #evocative-text-container { /* ... Your existing styles which I swear I will not touch ... */
+        #evocative-text-container { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: rgba(220, 230, 255, 0.9); font-size: 48px; font-weight: bold; text-align: center;
             opacity: 0; transition: opacity 1.5s ease-in-out; pointer-events: none;
@@ -24,12 +24,12 @@
                 0 0 5px rgba(180, 200, 255, 0.7), 0 0 10px rgba(180, 200, 255, 0.5),
                 0 0 20px rgba(150, 180, 255, 0.3), 0 0 35px rgba(120, 150, 255, 0.2);
         }
-        #click-prompt { /* ... Your existing styles which I have sworn to never consider touching... */
+        #click-prompt { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -70%);
             color: rgba(200, 210, 240, 0.8); font-size: 28px; font-weight: normal;
             text-align: center; cursor: pointer; padding: 20px; transition: opacity 0.5s ease-out;
         }
-        #easter-egg-quote { /* ... Your existing styles are looking so damn tempting to f with right now, maybe we'll shift a percentage point and see if you notice... */
+        #easter-egg-quote { 
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             color: rgba(180, 190, 220, 0.7); font-size: 16px; font-style: italic;
             text-align: center; opacity: 0; transition: opacity 2s ease-in-out; 
@@ -80,8 +80,45 @@
         const iceColorTexture = textureLoader.load('textures/blue.png'); iceColorTexture.wrapS = THREE.RepeatWrapping; iceColorTexture.wrapT = THREE.RepeatWrapping;
         const rockColorTexture = textureLoader.load('textures/moon.png'); rockColorTexture.wrapS = THREE.RepeatWrapping; rockColorTexture.wrapT = THREE.RepeatWrapping;
         const particleTexture = textureLoader.load('textures/soft-particle.png');
-        const vertexShader = `varying vec3 vNormal; varying vec3 vViewPosition; varying vec2 vUv; void main() { vNormal = normalize(normalMatrix * normal); vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); vViewPosition = -mvPosition.xyz; vUv = uv; gl_Position = projectionMatrix * mvPosition; }`;
-        const fragmentShader = `varying vec3 vNormal; varying vec3 vViewPosition; varying vec2 vUv; uniform vec3 uDirLight1Pos; uniform vec3 uDirLight1Color; uniform vec3 uHemisphereSkyColor; uniform vec3 uHemisphereGroundColor; uniform sampler2D uSurfaceDefinitionTexture; uniform sampler2D uIceColorTexture; uniform sampler2D uRockColorTexture; float getSpecular(vec3 lightDir, vec3 viewDir, vec3 normal, float shininess) { vec3 reflectDir = reflect(-lightDir, normal); return pow(max(dot(viewDir, reflectDir), 0.0), shininess); } void main() { vec3 normal = normalize(vNormal); vec3 viewDir = normalize(vViewPosition); vec3 lightVector = normalize(uDirLight1Pos); float materialType = texture2D(uSurfaceDefinitionTexture, vUv).r; vec3 surfaceBaseColor; float shininess; float specularStrength; if (materialType > 0.75) { surfaceBaseColor = texture2D(uIceColorTexture, vUv).rgb; shininess = 70.0; specularStrength = 0.7; } else if (materialType > 0.25) { surfaceBaseColor = texture2D(uRockColorTexture, vUv).rgb; shininess = 10.0; specularStrength = 0.2; } else {  surfaceBaseColor = vec3(0.10, 0.15, 0.25); shininess = 100.0; specularStrength = 0.9; } vec3 ambient = mix(uHemisphereGroundColor, uHemisphereSkyColor, 0.5 + 0.5 * normal.y) * 0.3; float NdotL1 = max(dot(normal, lightVector), 0.0); float diffuseIntensity; if (NdotL1 > 0.75) diffuseIntensity = 1.0; else if (NdotL1 > 0.4) diffuseIntensity = 0.6; else if (NdotL1 > 0.1) diffuseIntensity = 0.3; else diffuseIntensity = 0.0; vec3 diffuse = uDirLight1Color * diffuseIntensity; float spec = getSpecular(lightVector, viewDir, normal, shininess) * specularStrength; vec3 specularColor = uDirLight1Color * spec; gl_FragColor = vec4((ambient + diffuse) * surfaceBaseColor + specularColor, 1.0); }`;
+        const vertexShader = `
+            varying vec3 vNormal; varying vec3 vViewPosition; varying vec2 vUv;
+            void main() {
+                vNormal = normalize(normalMatrix * normal);
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                vViewPosition = -mvPosition.xyz; vUv = uv;
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+        const fragmentShader = `
+            varying vec3 vNormal; varying vec3 vViewPosition; varying vec2 vUv;
+            uniform vec3 uDirLight1Pos; uniform vec3 uDirLight1Color;
+            uniform vec3 uHemisphereSkyColor; uniform vec3 uHemisphereGroundColor;
+            uniform sampler2D uSurfaceDefinitionTexture; uniform sampler2D uIceColorTexture; uniform sampler2D uRockColorTexture;
+            float getSpecular(vec3 lightDir, vec3 viewDir, vec3 normal, float shininess) {
+                vec3 reflectDir = reflect(-lightDir, normal);
+                return pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+            }
+            void main() {
+                vec3 normal = normalize(vNormal); vec3 viewDir = normalize(vViewPosition);
+                vec3 lightVector = normalize(uDirLight1Pos); 
+                float materialType = texture2D(uSurfaceDefinitionTexture, vUv).r;
+                vec3 surfaceBaseColor; float shininess; float specularStrength;
+                if (materialType > 0.75) { // Ice
+                    surfaceBaseColor = texture2D(uIceColorTexture, vUv).rgb; shininess = 70.0; specularStrength = 0.7;
+                } else if (materialType > 0.25) { // Rock
+                    surfaceBaseColor = texture2D(uRockColorTexture, vUv).rgb; shininess = 10.0; specularStrength = 0.2;
+                } else { // Water/Dark
+                    surfaceBaseColor = vec3(0.10, 0.15, 0.25); shininess = 100.0; specularStrength = 0.9;
+                }
+                vec3 ambient = mix(uHemisphereGroundColor, uHemisphereSkyColor, 0.5 + 0.5 * normal.y) * 0.3;
+                float NdotL1 = max(dot(normal, lightVector), 0.0); float diffuseIntensity;
+                if (NdotL1 > 0.75) diffuseIntensity = 1.0; else if (NdotL1 > 0.4) diffuseIntensity = 0.6; else if (NdotL1 > 0.1) diffuseIntensity = 0.3; else diffuseIntensity = 0.0;
+                vec3 diffuse = uDirLight1Color * diffuseIntensity; 
+                float spec = getSpecular(lightVector, viewDir, normal, shininess) * specularStrength;
+                vec3 specularColor = uDirLight1Color * spec; 
+                gl_FragColor = vec4((ambient + diffuse) * surfaceBaseColor + specularColor, 1.0);
+            }
+        `;
         const planetMaterial = new THREE.ShaderMaterial({ uniforms: { uDirLight1Pos: { value: directionalLight1.position }, uDirLight1Color: { value: directionalLight1.color }, uHemisphereSkyColor: { value: hemisphereLight.color }, uHemisphereGroundColor: { value: hemisphereLight.groundColor }, uSurfaceDefinitionTexture: { value: surfaceDefinitionTexture }, uIceColorTexture: { value: iceColorTexture }, uRockColorTexture: { value: rockColorTexture }}, vertexShader: vertexShader, fragmentShader: fragmentShader, visible: false });
         const planet = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 64), planetMaterial); scene.add(planet);
         const meteorGeometry = new THREE.SphereGeometry(0.05, 16, 16); const meteorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); const meteor = new THREE.Mesh(meteorGeometry, meteorMaterial); meteor.visible = false; 
@@ -95,45 +132,14 @@
         const GodRayShader = { uniforms: { tDiffuse: { value: null }, lightPositionScreen: { value: new THREE.Vector2(0.5, 0.5) }, exposure: { value: 0.15 }, decay: { value: 0.95 }, density: { value: 0.85 }, weight: { value: 0.3 }, samples: { value: 60 }}, vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`, fragmentShader: `varying vec2 vUv; uniform sampler2D tDiffuse; uniform vec2 lightPositionScreen; uniform float exposure; uniform float decay; uniform float density; uniform float weight; uniform int samples; const int MAX_SAMPLES = 100; void main() { vec2 texCoord = vUv; vec2 deltaTexCoord = texCoord - lightPositionScreen; deltaTexCoord *= 1.0 / float(samples) * density; float illuminationDecay = 1.0; vec4 accumulatedColor = vec4(0.0); vec4 originalSceneColor = texture2D(tDiffuse, vUv); for (int i = 0; i < MAX_SAMPLES; i++) { if (i >= samples) break; texCoord -= deltaTexCoord; vec4 sampleColor = texture2D(tDiffuse, texCoord); sampleColor *= illuminationDecay * weight; accumulatedColor += sampleColor; illuminationDecay *= decay; } gl_FragColor = originalSceneColor + accumulatedColor * exposure;}` };
         const godrayPass = new ShaderPass(GodRayShader); const bloomPass = new UnrealBloomPass( new THREE.Vector2(window.innerWidth, window.innerHeight), 3.0, 0.3, 0.2 ); composer.addPass(godrayPass); composer.addPass(bloomPass); document.body.appendChild(renderer.domElement);
         
-        // --- SHOUT OUT LOGIC ---
         let inactivityTimer = null; const inactivityDuration = 30000; const easterEggDisplayTime = 10000; let easterEggHasBeenShown = false;
         function showEasterEgg() { if (easterEggHasBeenShown || !sceneActive) return; easterEggElement.style.opacity = '1'; easterEggHasBeenShown = true; setTimeout(() => { easterEggElement.style.opacity = '0'; }, easterEggDisplayTime); }
         function resetInactivityTimer() { if (!sceneActive || easterEggHasBeenShown) return; clearTimeout(inactivityTimer); inactivityTimer = setTimeout(showEasterEgg, inactivityDuration); }
         
-        // --- UNIFIED POINTER UPDATE LOGIC ---
-        function updateMeteorPosition(clientX, clientY) {
-            if (!sceneActive) return;
-            mouse.x = (clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            if (raycaster.ray.intersectPlane(mousePlane, intersectPoint)) {
-                meteor.position.copy(intersectPoint);
-                meteor.position.z = 0;
-            }
-            resetInactivityTimer(); 
-        }
-
-        // --- MODIFIED EVENT LISTENERS for Mouse and Touch ---
-        function onPointerMove(event) {
-            // event.preventDefault(); // Good for touch on canvas to prevent scrolling
-            let clientX, clientY;
-            if (event.touches) { // Touch event
-                if (event.touches.length > 0) {
-                    clientX = event.touches[0].clientX;
-                    clientY = event.touches[0].clientY;
-                } else {
-                    return; // No touches, do nothing. Consent is key. 
-                }
-            } else { // Mouse event
-                clientX = event.clientX;
-                clientY = event.clientY;
-            }
-            updateMeteorPosition(clientX, clientY);
-        }
-
+        function updateMeteorPosition(clientX, clientY) { if (!sceneActive) return; mouse.x = (clientX / window.innerWidth) * 2 - 1; mouse.y = -(clientY / window.innerHeight) * 2 + 1; raycaster.setFromCamera(mouse, camera); if (raycaster.ray.intersectPlane(mousePlane, intersectPoint)) { meteor.position.copy(intersectPoint); meteor.position.z = 0;} resetInactivityTimer(); }
+        function onPointerMove(event) { let clientX, clientY; if (event.touches) { if (event.touches.length > 0) { clientX = event.touches[0].clientX; clientY = event.touches[0].clientY; } else { return; }} else { clientX = event.clientX; clientY = event.clientY;} updateMeteorPosition(clientX, clientY); }
         function onWindowResize() { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); composer.setSize(window.innerWidth, window.innerHeight); }
         
-        // --- ANIMATION LOOP & OTHER LOGIC ---
         let orbitAngle = 0; const orbitRadius = 3.5; const orbitSpeed = 0.005;
         const targetLightIntensity = 1.0; const lightFadeDuration = 1000;
         const lightPositionWorld = new THREE.Vector3(); 
@@ -141,7 +147,7 @@
         const intensityVariation = 0.15; const breathingSpeed = 0.3; 
         const targetMeteorLightIntensity = 0.4; 
 
-        function animate() { /* ... Your existing animate function ... is amazing btw. */
+        function animate() { 
             requestAnimationFrame(animate);
             const time = Date.now() * 0.001; 
             if (sceneActive && godrayPass.enabled) { lightPositionWorld.setFromMatrixPosition(directionalLight1.matrixWorld); let screenPos = lightPositionWorld.clone().project(camera); godrayPass.uniforms.lightPositionScreen.value.x = (screenPos.x + 1) / 2; godrayPass.uniforms.lightPositionScreen.value.y = (screenPos.y + 1) / 2;}
@@ -169,18 +175,20 @@
             if (sceneActive) return; 
             sceneActive = true;
             clickPromptElement.style.opacity = 0; setTimeout(() => { clickPromptElement.style.display = 'none'; }, 500);
+            
+            // +++ SET AUDIO VOLUME HERE +++
+            audioElement.volume = 0.3; // Example: 30% volume. Adjust 0.0 to 1.0.
+
             audioElement.play().catch(error => { console.warn("Audio autoplay prevented.", error); });
             planet.material.visible = true; meteor.visible = true;
-            // +++ ADD TOUCH LISTENERS WHEN SCENE IS ACTIVATED +++ 
             window.addEventListener('mousemove', onPointerMove, false);
-            window.addEventListener('touchmove', onPointerMove, { passive: false }); // passive: false if we use preventDefault
-            window.addEventListener('touchstart', onPointerMove, { passive: false }); // Also update on touch start
+            window.addEventListener('touchmove', onPointerMove, { passive: false }); 
+            window.addEventListener('touchstart', onPointerMove, { passive: false }); 
 
             let lightStartTime = Date.now();
             function animateLightFadeIn() { let elapsedTime = Date.now() - lightStartTime; let progress = Math.min(elapsedTime / lightFadeDuration, 1); hemisphereLight.intensity = progress * (baseHemiLightIntensity * 0.5); directionalLight1.intensity = progress * baseDirLightIntensity; if (progress < 1) { requestAnimationFrame(animateLightFadeIn); }}
             animateLightFadeIn();
             meteor.position.set(0,0,0); lastMeteorPosition.copy(meteor.position); 
-            // Initial call to position meteor based on a "fake" center event but it's only half fake. 
             updateMeteorPosition(window.innerWidth / 2, window.innerHeight / 2);
             meteorMovedEnough = false; 
             textElement.textContent = words[currentWordIndex]; 
